@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KANCIL_VPN.sys</title>
+<style>
+:root{--bg:#050a10;--card:#0a121a;--line:#14302a;--fg:#e6f0ec;--mut:#7c9089;--acc:#34d399;--btn:#059669;--pur:#a78bfa;--yel:#fbbf24;--in:#03070c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+.mono,input,select,textarea,button{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+header{text-align:center;padding:22px 16px;border-bottom:1px solid #0f1a22}
+h1{margin:0;font-size:1.5rem;letter-spacing:.02em}
+h1 span{color:var(--acc)}
+.sub{color:var(--mut);font-size:.75rem;margin-top:2px}
+.badge{display:inline-flex;gap:8px;align-items:center;margin-top:14px;padding:6px 16px;border:1px solid var(--line);border-radius:8px;background:#08140f;font-size:.85rem;color:var(--mut)}
+.badge i{width:9px;height:9px;border-radius:50%;background:var(--mut)}
+.badge.on{color:var(--acc)}.badge.on i{background:var(--acc)}
+main{max-width:560px;margin:0 auto;padding:20px 14px 40px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid #16212b;border-radius:14px;padding:16px}
+.stat small{display:block;color:var(--mut);font-size:.72rem}
+.stat b{display:block;margin-top:6px;font-size:1.35rem;line-height:1.3}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.card h2{margin:0 0 16px;font-size:1rem;padding-bottom:12px;border-bottom:1px solid #16212b}
+label{display:flex;justify-content:space-between;align-items:center;margin:14px 0 6px;color:var(--mut);font-size:.85rem}
+input,select{width:100%;padding:13px 14px;background:var(--in);color:var(--acc);border:1px solid #16212b;border-radius:10px;font-size:.9rem}
+input:focus,select:focus,button:focus-visible{outline:2px solid #e6f0ec;outline-offset:1px}
+select{appearance:auto}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.link{background:none;border:0;color:var(--acc);cursor:pointer;font-size:.8rem;padding:0}
+.go{width:100%;margin-top:20px;padding:14px;border:0;border-radius:10px;background:var(--btn);color:#03130c;font-weight:700;font-size:.9rem;cursor:pointer}
+.go:active{transform:scale(.99)}
+#out{display:none;margin-top:18px}
+#out textarea{width:100%;min-height:110px;padding:12px;background:var(--in);color:var(--fg);border:1px solid #16212b;border-radius:10px;font-size:.78rem;word-break:break-all;resize:vertical}
+.copy{margin-top:8px;padding:10px 16px;border:1px solid var(--acc);background:none;color:var(--acc);border-radius:8px;cursor:pointer}
+.meta{margin-top:8px;color:var(--mut);font-size:.75rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="mono">KANCIL_VPN<span>.sys</span></h1>
+  <div class="sub mono">Generator konfigurasi VLESS / Trojan WebSocket</div>
+  <div id="badge" class="badge mono"><i></i><span id="badgeTxt">Mengecek status…</span></div>
+</header>
+
+<main>
+  <section class="stats mono">
+    <div class="stat"><small>UPTIME</small><b id="sUp">–</b></div>
+    <div class="stat"><small>RAM USED</small><b id="sRam" style="color:var(--acc)">–</b></div>
+    <div class="stat"><small>PROTOKOL</small><b style="color:var(--pur)">VLESS / TROJAN</b></div>
+    <div class="stat"><small>UDP &amp; DNS</small><b id="sUdp" style="color:var(--yel)">–</b></div>
+  </section>
+
+  <section class="card">
+    <h2 class="mono">Config generator</h2>
+
+    <label for="proto">Protokol</label>
+    <select id="proto"><option value="trojan">Trojan</option><option value="vless">VLESS</option></select>
+
+    <label for="method">Metode koneksi</label>
+    <select id="method">
+      <option value="sni">WebSocket (SNI / Bug Host)</option>
+      <option value="wild">WebSocket (Wildcard: bug.hostutama)</option>
+      <option value="direct">WebSocket (Langsung, tanpa bug)</option>
+    </select>
+
+    <label for="proxy">Target proxy</label>
+    <select id="proxy"></select>
+
+    <label for="main">Host utama (base domain)</label>
+    <input id="main" list="mains" autocomplete="off" spellcheck="false">
+    <datalist id="mains"></datalist>
+
+    <label for="path">Custom path / IP:Port</label>
+    <input id="path" autocomplete="off" spellcheck="false" placeholder="id-dnva atau 1.2.3.4:443">
+
+    <label for="bug">Bug host (WS)</label>
+    <input id="bug" list="bugs" autocomplete="off" spellcheck="false" placeholder="ketik atau pilih dari daftar">
+    <datalist id="bugs"></datalist>
+
+    <div class="row">
+      <div>
+        <label for="port">Port</label>
+        <select id="port"><option value="443">443 (TLS)</option><option value="80">80 (non-TLS)</option></select>
+      </div>
+      <div>
+        <label for="exp">Masa aktif</label>
+        <select id="exp">
+          <option value="7">Weekly (7 hari)</option>
+          <option value="30">Monthly (30 hari)</option>
+          <option value="0">Tanpa batas</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="remark">Username / remark</label>
+    <input id="remark" value="Kancil-VPN" autocomplete="off">
+
+    <label for="uuid">UUID / password <button class="link" id="reUuid" type="button">↻ Acak UUID baru</button></label>
+    <input id="uuid" autocomplete="off" spellcheck="false">
+
+    <label for="admin">Admin key (untuk mendaftarkan UUID ke server)</label>
+    <input id="admin" type="password" autocomplete="off" placeholder="kosongkan jika tidak dipakai">
+
+    <button class="go mono" id="gen" type="button">Generate config link</button>
+
+    <div id="out">
+      <textarea id="link" readonly></textarea>
+      <button class="copy mono" id="copy" type="button">Salin link</button>
+      <div class="meta mono" id="meta"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ===== Edit bagian ini sesuai server kamu =====
+const CFG = {
+  apiBase: '',                         // kosong = server yang sama; atau 'https://xxx.up.railway.app'
+  mainDomains: ['skcku.pages.dev'],
+  proxies: [
+    { name: 'id-dnva',   ip: '103.169.207.189', port: 443, flag: '🇮🇩' },
+    { name: 'id-deneva', ip: '202.155.95.132',  port: 443, flag: '🇮🇩' }
+  ],
+  bugHosts: ['support.zoom.us']
+};
+// ==============================================
+
+const $ = id => document.getElementById(id);
+const uuid4 = () => (crypto.randomUUID ? crypto.randomUUID() :
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+  }));
+
+// isi form
+CFG.mainDomains.forEach(d => $('mains').append(new Option(d)));
+CFG.bugHosts.forEach(h => $('bugs').append(new Option(h)));
+CFG.proxies.forEach((p, i) => $('proxy').append(new Option(`${p.flag} /${p.name} (${p.ip}:${p.port})`, i)));
+$('main').value = CFG.mainDomains[0] || '';
+$('bug').value = CFG.bugHosts[0] || '';
+$('uuid').value = uuid4();
+const syncPath = () => { const p = CFG.proxies[$('proxy').value]; if (p) $('path').value = p.name; };
+$('proxy').onchange = syncPath; syncPath();
+$('reUuid').onclick = () => { $('uuid').value = uuid4(); };
+
+function fmtDate(d) {
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function build() {
+  const proto = $('proto').value, method = $('method').value;
+  const main = $('main').value.trim(), bug = $('bug').value.trim();
+  const id = $('uuid').value.trim(), tls = $('port').value === '443';
+  const slug = $('path').value.trim().replace(/^\/+/, '');
+  if (!main || !id || !slug) return { err: 'Host utama, path, dan UUID wajib diisi.' };
+  if (method !== 'direct' && !bug) return { err: 'Isi bug host, atau pilih metode "Langsung".' };
+
+  let addr = main, sni = main, host = main;
+  if (method === 'sni')  { addr = main; sni = bug; host = main; }
+  if (method === 'wild') { addr = bug;  sni = `${bug}.${main}`; host = sni; }
+
+  let name = $('remark').value.trim() || 'VPN';
+  const days = +$('exp').value;
+  let expTxt = 'tanpa batas';
+  if (days) {
+    const d = new Date(); d.setDate(d.getDate() + days);
+    expTxt = fmtDate(d); name += ` | EXP ${expTxt}`;
+  }
+
+  const q = new URLSearchParams();
+  if (proto === 'vless') q.set('encryption', 'none');
+  q.set('security', tls ? 'tls' : 'none');
+  if (tls) { q.set('sni', sni); q.set('fp', 'randomized'); }
+  q.set('type', 'ws');
+  q.set('host', host);
+  q.set('path', '/' + slug);
+
+  const url = `${proto}://${encodeURIComponent(id)}@${addr}:${$('port').value}?${q}#${encodeURIComponent(name)}`;
+  return { url, info: `Address: ${addr} · SNI: ${tls ? sni : '-'} · Host: ${host} · Exp: ${expTxt}` };
+}
+
+$('gen').onclick = async () => {
+  const r = build();
+  $('out').style.display = 'block';
+  if (r.err) { $('link').value = ''; $('meta').textContent = r.err; return; }
+  $('link').value = r.url; $('meta').textContent = r.info;
+  $('copy').textContent = 'Salin link';
+  const key = $('admin').value;
+  if (!key) return;
+  try {
+    const res = await fetch(CFG.apiBase + '/api/register', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-admin-key': key },
+      body: JSON.stringify({ uuid: $('uuid').value.trim(), days: +$('exp').value })
+    });
+    $('meta').textContent += res.ok ? ' · Terdaftar di server ✓' : ' · Gagal daftar: admin key salah?';
+  } catch { $('meta').textContent += ' · Gagal menghubungi server'; }
+};
+
+$('copy').onclick = async () => {
+  const t = $('link').value; if (!t) return;
+  try { await navigator.clipboard.writeText(t); }
+  catch { $('link').select(); document.execCommand('copy'); }
+  $('copy').textContent = 'Tersalin ✓';
+};
+
+// status server (opsional)
+(async () => {
+  try {
+    const r = await fetch(CFG.apiBase + '/api/status', { cache: 'no-store' });
+    if (!r.ok) throw 0;
+    const s = await r.json();
+    $('badge').classList.add('on'); $('badgeTxt').textContent = 'SERVER ACTIVE';
+    $('sUp').textContent = s.uptime + 's';
+    $('sRam').textContent = s.ram + ' MB';
+    $('sUdp').textContent = s.udp ? 'PASSED 🟢' : 'FAILED 🔴';
+  } catch {
+    $('badgeTxt').textContent = 'Status server tidak tersedia';
+  }
+})();
+</script>
+</body>
+</html>
